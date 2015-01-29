@@ -1,2 +1,2 @@
 # cotton
-lightweight cloud bootstrapping with fabric
+lightweight debian bootstrapping with fabric
