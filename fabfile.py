@@ -261,8 +261,7 @@ def bootstrap():
     Meta-task that bootstraps the base system + firewall of all servers.
     """
 
-    # bootstrap executes various tasks that must be done as root (ie, install
-    # sudo)
+    # bootstrap executes various tasks that must be done as root (ie, install sudo)
     if env.user != "root":
         raise Exception("You must set SSH_USER=root to run bootstrap().")
 
