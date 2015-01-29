@@ -14,6 +14,11 @@ APT_REQUIREMENTS_PATH = 'requirements/apt.txt'
 # IPs from which admin traffiic should be permitted.
 ADMIN_IPS = []
 
+# the accounts that should be created in the staff group and granted sudo access.
+# We default to a single 'deploy' user so other projects that are deploying via
+# fabric to our host(s) do not need root access.
+STAFF = ['deploy']
+
 
 # attempt to load environment-specific settings
 e = os.environ.get('COTTON_TARGET', None)

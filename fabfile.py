@@ -5,7 +5,7 @@ import sys
 import re
 import os
 from functools import wraps
-from fabric.api import env, sudo as _sudo, run as _run, hide, task
+from fabric.api import env, sudo as _sudo, run as _run, hide, task, settings, put
 from fabric.contrib.files import exists, upload_template
 from fabric.colors import green, blue
 #from fabric.exceptions import NetworkError
@@ -27,6 +27,7 @@ env.user = conf.SSH_USER
 env.pip_reqs_path = conf.PIP_REQUIREMENTS_PATH
 env.apt_reqs_path = conf.APT_REQUIREMENTS_PATH
 env.admin_ips = conf.ADMIN_IPS
+env.staff_users = conf.STAFF
 
 # to disambiguate references to 'user' in the templates
 env.fabric_user = env.user
@@ -227,6 +228,30 @@ def firewall():
 
 
 @task
+def create_staff():
+    """
+    Create any missing staff accounts.
+    """
+
+    for u in env.staff_users:
+        with settings(warn_only=True):
+            result = sudo("useradd -U -G sudo,staff -m -d /home/%s -s /bin/bash %s" % (u, u))
+
+            # user either was created, or already exists
+            if result.return_code in [0, 9]:
+                run("mkdir -p /home/%s/.ssh" % u)
+                key = "keys/%s.pub" % u
+                if (os.path.exists(key)):
+                    put(key, "/home/%s/.ssh/authorized_keys" % u)
+                run("chmod 600 /home/%s/.ssh/authorized_keys" % u)
+                run("chown -R %s:%s /home/%s/.ssh" % (u, u, u))
+                run("chmod 700 /home/%s/.ssh" % u)
+            else:
+                print result
+                raise SystemExit()
+
+
+@task
 def bootstrap():
     """
     Meta-task that bootstraps the base system + firewall of all servers.
@@ -240,3 +265,4 @@ def bootstrap():
     install_dependencies()
     firewall()
     upload_template_and_reload('sudoers')
+    create_staff()
