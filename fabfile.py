@@ -17,6 +17,11 @@ if sys.argv[0].split(os.sep)[-1] != 'fab':
 # import settings from the local directory
 conf = __import__("settings", globals(), locals(), [], 0)
 
+# check for env.hosts before configuring it with the HOSTS variable from settings,
+# so that the target host(s) can be overridden at the command-line.
+if not env.hosts:
+    env.hosts = conf.HOSTS
+
 # configure the shared environment
 env.user = conf.SSH_USER
 env.pip_reqs_path = conf.PIP_REQUIREMENTS_PATH
