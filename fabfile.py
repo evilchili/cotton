@@ -182,6 +182,10 @@ def install_dependencies():
     Checks for changes in the system dependencies file across an update,
     and gets new requirements if changes have occurred.
     """
+
+    # resolve any lingering conflicts of config files from aborted runs
+    run("dpkg --configure -a --force-confdef --force-confold")
+
     apt_reqs_path = os.path.abspath(os.path.join(
         os.path.dirname(os.path.abspath(__file__)), env.apt_reqs_path
     ))
