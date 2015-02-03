@@ -320,7 +320,7 @@ def create_virtualenv():
 
     # Create virtualenv
     sudo("mkdir -p %s" % env.virtualenv_home)
-    sudo("chown %s %s" % (env.user, env.virtualenv_home))
+    sudo("chown %s:%s %s" % (env.project_user, env.project_group, env.virtualenv_home))
     with cd(env.virtualenv_home):
         if exists(env.project_name):
             if not env.no_prompts:
