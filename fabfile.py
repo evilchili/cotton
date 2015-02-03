@@ -222,7 +222,7 @@ def install_dependencies():
     """
 
     # resolve any lingering conflicts of config files from aborted runs
-    run("dpkg --configure -a --force-confdef --force-confold")
+    sudo("dpkg --configure -a --force-confdef --force-confold")
 
     for p in env.apt_requirements_path:
         fn = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
