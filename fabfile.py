@@ -171,6 +171,19 @@ def get_git_remotes():
     return remotes
 
 
+def create_project_user():
+    with settings(warn_only=True):
+        result = sudo(
+            "useradd -U -G {1} -m -d /home/{0} -s /bin/bash {0}".format(
+                env.project_user,
+                env.project_group
+            )
+        )
+    if result.return_code not in [0, 9]:
+        print result
+        raise SystemExit()
+
+
 ######################################################################
 # HELPER TASKS
 ######################################################################
@@ -259,7 +272,7 @@ def git_push(rev=None):
     if not exists(env.project_root):
         sudo("mkdir -p %s" % env.project_root)
         sudo("chmod 2775 %s" % env.project_root)
-        sudo("chown -R %s:www-data %s" % (env.user, env.project_root))
+        sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.project_root))
         with cd(env.project_root):
             run("git init")
 
@@ -323,8 +336,8 @@ def create_virtualenv():
         # create the target directory for this project on the remote server
         root = os.path.dirname(os.path.abspath(__file__))
         if env.use_git:
-            run("git config --global user.email '%s'" % env.user)
-            run("git config --global user.name  '%s'" % env.user)
+            run("git config --global user.email '%s'" % env.project_user)
+            run("git config --global user.name  '%s'" % env.project_user)
             run("git config --global receive.denyCurrentBranch ignore")
             git_push()
         else:
@@ -414,6 +427,8 @@ def install():
     """
     Create the python virtualenv and deployment target directories if necessary
     """
+
+    create_project_user()
     if not exists(env.virtualenv_home) or not exists(env.project_root):
         create_virtualenv()
         update_python_requirements()

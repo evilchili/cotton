@@ -11,11 +11,19 @@ VIRTUALENV_HOME = '/usr/local/deploy'
 PROJECT_NAME = None
 VIRTUALENV_PATH = None
 
+# a restricted user as whom the application will execute; do not put them in the
+# staff or sudo groups!
+PROJECT_USER = None
+PROJECT_GROUP = None
+
 # SSH Configuration for fabric tasks. Note that you must explicitly override SSH_USER
-# with 'root' when running the bootstrap fabric task.
+# with 'root' when running the bootstrap fabric task. By default this user is given
+# sudo privileges, but you can override that by removing them from STAFF_USERS; see
+# below.
 SSH_USER = 'deploy'
 SSH_PASS = None
 SSH_KEY_PATH = '~/.ssh/id_rsa'
+
 
 # where to find the system and python requirements. The default values contain
 # packages and modules common to most deployments; you can extend or override
