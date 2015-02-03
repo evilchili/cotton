@@ -13,17 +13,6 @@ from subprocess import check_output, check_call
 #from fabric.exceptions import NetworkError
 #from tempfile import mkstemp
 
-######################################################################
-# TEMPLATES
-######################################################################
-templates = [
-    {
-        "name": "sudoers",
-        "local_path": "templates/sudoers",
-        "remote_path": "/etc/sudoers",
-    },
-]
-
 
 ######################################################################
 # UTILITY FUNCTIONS
@@ -83,7 +72,7 @@ def get_templates():
     Returns each of the templates with env vars injected.
     """
     injected = {}
-    for t in templates:
+    for t in env.templates:
         name = t['name']
         injected[name] = dict([(k, v % env) for k, v in t.items()])
     return injected

@@ -38,6 +38,15 @@ STAFF_USERS = [SSH_USER]
 USE_GIT = True
 GIT_BRANCH = 'master'
 
+TEMPLATES = [
+    {
+        "name": "sudoers",
+        "local_path": "templates/sudoers",
+        "remote_path": "/etc/sudoers",
+    },
+]
+
+
 # attempt to load environment-specific settings
 e = os.environ.get('COTTON_TARGET', None)
 if e:
