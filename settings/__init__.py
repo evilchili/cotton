@@ -28,8 +28,13 @@ SSH_KEY_PATH = '~/.ssh/id_rsa'
 # where to find the system and python requirements. The default values contain
 # packages and modules common to most deployments; you can extend or override
 # these lists in your application's cotton_settings.
-PIP_REQUIREMENTS_PATH = ['requirements/pip.txt']
-APT_REQUIREMENTS_PATH = ['requirements/apt.txt']
+#
+# Note that the paths here are relative to your application root, so the defaults
+# assume you are adding cotton as a submodule at build/cotton/.  If you place the
+# submodule elsewhere in your code, you will need to override these values in your
+# local cotton_settings.py (or merge the contents into your own requirements files).
+PIP_REQUIREMENTS_PATH = ['build/cotton/requirements/pip.txt']
+APT_REQUIREMENTS_PATH = ['build/cotton/requirements/apt.txt']
 
 # Note: may be platform-dependant!
 LOCALE = 'en.US_UTF-8'

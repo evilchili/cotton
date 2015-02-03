@@ -186,6 +186,12 @@ def create_project_user():
     sudo("usermod -a -G {1} {0}".format(env.user, env.project_group))
 
 
+def set_project_perms():
+    sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.virtualenv_home))
+    sudo("find %s -type d -exec chmod 2775 {} \\;" % env.virtualenv_home)
+    sudo("find %s -type f -exec chmod g+rw {} \\;" % env.virtualenv_home)
+
+
 ######################################################################
 # HELPER TASKS
 ######################################################################
@@ -275,7 +281,7 @@ def git_push(rev=None):
         raise Exception("The project root is missing! Do you need to run the install() task?")
     with cd(env.project_root):
         run("git init")
-        sudo("chown -R %s:%s .git" % (env.user, env.project_group))
+        set_project_perms()
 
     remotes = get_git_remotes()
 
@@ -311,7 +317,7 @@ def git_push(rev=None):
         run("git reset --hard")
         run("git submodule init")
         run("git submodule update")
-        sudo("chown -R %s:%s *" % (env.project_user, env.project_group))
+        set_project_perms()
 
 
 @task
@@ -335,9 +341,7 @@ def create_virtualenv():
             remove_templates()
         sudo("virtualenv %s" % env.project_name)
         sudo("mkdir -p %s" % env.project_root)
-        sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.project_name))
-        sudo("find %s -type d -exec chmod 2775 {} \\;" % env.virtualenv_home)
-        sudo("find %s -type f -exec chmod g+rw {} \\;" % env.virtualenv_home)
+        set_project_perms()
 
     with cd(env.project_root):
         if env.use_git:
@@ -366,6 +370,7 @@ def update_python_requirements():
             # skip any requirements file that doesn't exist on the remote host. This lets us
             # ignore cotton's default requirements, if they're listed in the env.
             fn = env.project_root + '/' + p
+            print "Processing python requirements from %s" % fn
             if exists(fn):
                 pip("-r %s" % fn)
 
