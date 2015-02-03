@@ -173,8 +173,9 @@ def get_git_remotes():
 
 def create_project_user():
     with settings(warn_only=True):
+        sudo("groupadd -f %s" % env.project_group)
         result = sudo(
-            "useradd -U -G {1} -m -d /home/{0} -s /bin/bash {0}".format(
+            "useradd -g {1} -m -d /home/{0} -s /bin/bash {0}".format(
                 env.project_user,
                 env.project_group
             )
