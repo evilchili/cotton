@@ -3,3 +3,7 @@ ufw
 fail2ban
 git-core
 vim
+python2.7
+python-setuptools
+python-pip
+python-virtualenv
