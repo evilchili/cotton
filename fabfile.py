@@ -24,6 +24,10 @@ def set_fabric_env(settings_module):
     """
 
     conf = __import__(settings_module, globals(), locals(), [], 0)
+
+    if '-u' not in sys.argv:
+        env.user = conf.SSH_USER
+
     for k in [k for k in conf.__dict__.keys() if k.upper() == k]:
         v = getattr(env, k.lower(), None)
         if not v:
