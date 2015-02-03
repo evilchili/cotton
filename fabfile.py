@@ -183,6 +183,7 @@ def create_project_user():
     if result.return_code not in [0, 9]:
         print result
         raise SystemExit()
+    sudo("usermod -a -G {1} {0}".format(env.user, env.project_group))
 
 
 ######################################################################
@@ -271,11 +272,10 @@ def git_push(rev=None):
 
     # ensure the project path exists and is a git repo with a first commit.
     if not exists(env.project_root):
-        sudo("mkdir -p %s" % env.project_root)
-        sudo("chmod 2775 %s" % env.project_root)
-        sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.project_root))
-        with cd(env.project_root):
-            run("git init")
+        raise Exception("The project root is missing! Do you need to run the install() task?")
+    with cd(env.project_root):
+        run("git init")
+        sudo("chown -R %s:%s .git" % (env.user, env.project_group))
 
     remotes = get_git_remotes()
 
@@ -311,6 +311,7 @@ def git_push(rev=None):
         run("git reset --hard")
         run("git submodule init")
         run("git submodule update")
+        sudo("chown -R %s:%s *" % (env.project_user, env.project_group))
 
 
 @task
@@ -321,7 +322,7 @@ def create_virtualenv():
 
     # Create virtualenv
     sudo("mkdir -p %s" % env.virtualenv_home)
-    sudo("chown %s:%s %s" % (env.project_user, env.project_group, env.virtualenv_home))
+    sudo("chown %s:staff %s" % (env.user, env.virtualenv_home))
     with cd(env.virtualenv_home):
         if exists(env.project_name):
             if not env.no_prompts:
@@ -332,21 +333,27 @@ def create_virtualenv():
                     return False
             remove_virtualenv()
             remove_templates()
-        run("virtualenv %s" % env.project_name)
+        sudo("virtualenv %s" % env.project_name)
+        sudo("mkdir -p %s" % env.project_root)
+        sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.project_name))
+        sudo("find %s -type d -exec chmod 2775 {} \\;" % env.virtualenv_home)
+        sudo("find %s -type f -exec chmod g+rw {} \\;" % env.virtualenv_home)
 
-        # create the target directory for this project on the remote server
-        root = os.path.dirname(os.path.abspath(__file__))
+    with cd(env.project_root):
         if env.use_git:
-            run("git config --global user.email '%s'" % env.project_user)
-            run("git config --global user.name  '%s'" % env.project_user)
-            run("git config --global receive.denyCurrentBranch ignore")
+            sudo("su -l {0} -c \"git config --global user.email '{0}'\"".format(env.project_user))
+            sudo("su -l {0} -c \"git config --global user.name  '{0}'\"".format(env.project_user))
+            sudo("su -l {0} -c \"git config --global receive.denyCurrentBranch ignore\"".format(
+                env.project_user
+            ))
             git_push()
         else:
-            root = os.path.dirname(os.path.abspath(__file__))
-            sudo("mkdir -p %s" % env.project_root)
-            for target in env.upload_targets:
-                put("%s/%s" %
-                    (root, target), env.project_root, use_sudo=True, mirror_local_mode=True)
+            raise NotImplementedError("flat-file support not implemented at this time.")
+            #root = os.path.dirname(os.path.abspath(__file__))
+            #sudo("mkdir -p %s" % env.project_root)
+            #for target in env.upload_targets:
+            #    put("%s/%s" %
+            #        (root, target), env.project_root, use_sudo=True, mirror_local_mode=True)
 
 
 @task
