@@ -341,6 +341,10 @@ def create_virtualenv():
                 put("%s/%s" %
                     (root, target), env.project_root, use_sudo=True, mirror_local_mode=True)
 
+
+@task
+def update_python_requirements():
+
     # Set up project by installing required python modules
     with project(env):
         for p in getattr(env, 'pip_requirements_path', []):
@@ -419,6 +423,9 @@ def install():
     """
     if not exists(env.virtualenv_home) or not exists(env.project_root):
         create_virtualenv()
+        update_python_requirements()
+        return True
+    return False
 
 
 @task
