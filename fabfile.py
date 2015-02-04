@@ -346,6 +346,23 @@ def set_timezone(zone=None):
 
 
 @task
+def set_locale(locale=None):
+    """
+    Set the system locale
+    """
+    if locale is None:
+        locale = env.locale
+
+    supported = '/usr/share/i18n/SUPPORTED'
+    with settings(warn_only=True):
+        ret = run("grep '%s' %s" % (locale, supported))
+        if ret.return_code != 0:
+            raise Exception("Unsupported locale; check %s" % supported)
+
+    sudo("echo 'LANG=\"%s\"' > /etc/default/locale" % locale)
+
+
+@task
 def git_push(rev=None):
     """
     Push the local git repo to the remote hosts
@@ -597,6 +614,7 @@ def bootstrap():
         raise Exception("You must set SSH_USER=root to run bootstrap().")
 
     set_timezone()
+    set_locale()
     install_dependencies()
     firewall()
     upload_template_and_reload('sudoers')
