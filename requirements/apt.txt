@@ -9,3 +9,4 @@ python-setuptools
 python-dev
 python-pip
 python-virtualenv
+bsd-mailx
