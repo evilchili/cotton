@@ -250,6 +250,8 @@ def set_project_perms():
 # mezzanine's default fabfile, though they have diverged over time.
 #
 ######################################################################
+
+
 @task
 def run(command, show=True):
     """
@@ -328,6 +330,20 @@ def pip(packages):
 # so on.
 #
 ######################################################################
+
+@task
+def set_timezone(zone=None):
+    """
+    Set the system timezone
+    """
+    if zone is None:
+        zone = env.timezone
+    zi = "/usr/share/zoneinfo/%s" % zone
+    if not exists(zi):
+        raise Exception("Could not locate zone info for '%s'" % zone)
+    sudo("echo '%s' > /etc/timezone" % zone)
+    sudo("cp %s /etc/localtime" % zi)
+
 
 @task
 def git_push(rev=None):
@@ -580,6 +596,7 @@ def bootstrap():
     if env.user != "root":
         raise Exception("You must set SSH_USER=root to run bootstrap().")
 
+    set_timezone()
     install_dependencies()
     firewall()
     upload_template_and_reload('sudoers')

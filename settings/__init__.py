@@ -39,6 +39,9 @@ APT_REQUIREMENTS_PATH = ['build/cotton/requirements/apt.txt']
 # Note: may be platform-dependant!
 LOCALE = 'en.US_UTF-8'
 
+# timezone defaults to UTC; override in your local configs.
+TIMEZONE = 'UTC'
+
 # IPs from which admin traffic should be permitted.
 ADMIN_IPS = []
 
