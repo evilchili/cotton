@@ -625,8 +625,6 @@ def install_postfix(relay=None):
     # enforce the config after installation, JIC it has changed
     if relay:
         sudo("/usr/sbin/postconf -e relayhost=%s" % relay)
-    else:
-        sudo("/usr/sbin/postconf -e mailname=%s" % env.host)
 
     sudo("/usr/sbin/postfix reload")
 
