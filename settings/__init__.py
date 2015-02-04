@@ -50,6 +50,13 @@ ADMIN_IPS = []
 # fabric to our host(s) do not need root access.
 STAFF_USERS = [SSH_USER]
 
+# install outbound smtp services via postfix, if true
+SMTP_HOST = True
+
+# if SMTP_RELAY is set, configure postfix to relay outbound SMTP through this host.
+SMTP_RELAY = None
+
+
 # Use git for shipping application code to the remote hosts
 USE_GIT = True
 GIT_BRANCH = 'master'

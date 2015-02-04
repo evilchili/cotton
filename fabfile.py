@@ -599,6 +599,39 @@ def install():
 
 
 @task
+def install_postfix(relay=None):
+    """
+    Deploy postfix for outbound SMTP
+    """
+
+    if relay is None:
+        relay = env.smtp_relay
+
+    # set the mailer type
+    sudo('debconf-set-selections <<< "postfix postfix/main_mailer_type string \'%s\'"' % (
+        'Satellite' if relay else 'Internet Site'
+    ))
+
+    # configure the relayhost or mailname, as required
+    if relay:
+        sudo("debconf-set-selections <<< 'postfix postfix/relayhost %s'" % relay)
+
+    else:
+        sudo("debconf-set-selections <<< 'postfix postfix/mailname string %s'" % env.host)
+
+    # install postfix
+    apt('postfix')
+
+    # enforce the config after installation, JIC it has changed
+    if relay:
+        sudo("/usr/sbin/postconf -e relayhost=%s" % relay)
+    else:
+        sudo("/usr/sbin/postconf -e mailname=%s" % env.host)
+
+    sudo("/usr/sbin/postfix reload")
+
+
+@task
 def bootstrap():
     """
     Meta-task that bootstraps the base system; must be run as root
@@ -619,6 +652,9 @@ def bootstrap():
     firewall()
     upload_template_and_reload('sudoers')
     create_staff()
+
+    if env.smtp_host:
+        install_postfix()
 
 
 if __name__ == '__main__':
