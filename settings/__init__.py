@@ -60,6 +60,12 @@ SMTP_RELAY = None
 USE_GIT = True
 GIT_BRANCH = 'master'
 
+FIREWALL = [
+    "default deny incoming",
+    "default allow outgoing",
+    "allow proto tcp from %(all_admin_ips)s to %(public_ip)s port 22",
+]
+
 TEMPLATES = [
     {
         "name": "sudoers",

@@ -47,6 +47,8 @@ def set_fabric_env(settings_module):
         if not v:
             setattr(env, k.lower(), getattr(conf, k, None))
 
+    env.all_admin_ips = ','.join(env.admin_ips)
+
     # Some sugar to disambiguate references to 'user' in the templates
     env.fabric_user = env.user
 
@@ -231,6 +233,18 @@ def create_project_user():
     # We place the fabric ssh user in the project group, because the
     # fabric user needs to be able to modify files owned by the user.
     sudo("usermod -a -G {1} {0}".format(env.fabric_user, env.project_group))
+
+
+def get_public_ip(iface='eth0'):
+    """
+    Return the IP of the primary public interface.
+    """
+
+    # WAT bad assumption here; we should make this configurable by adding a MANAGED_IFACE to the
+    # settings or something.
+    if not getattr(env, 'public_ip', None):
+        env.public_ip = get_ipv4(iface)
+    return env.public_ip
 
 
 def set_project_perms():
@@ -537,17 +551,12 @@ def firewall():
     # WAT you could flush existing rules here, to completely wipe out any changes that have
     # been made. This is a Good Idea, and you should do it. Meaning me, meaning I should do it.
 
-    # WAT deny all outgoing should be the default, with the cumbersome rulesets this implies.
-    sudo("ufw default deny incoming")
-    sudo("ufw default allow outgoing")
+    get_public_ip()
 
-    # WAT bad assumption here; we should make this configurable by adding a MANAGED_IFACE to the
-    # settings or something.
-    public_ip = get_ipv4("eth0")
-
-    # ensure SSH access is permitted from the ADMIN_IPS.
-    for i in env.admin_ips:
-        sudo("ufw allow proto tcp from %s to %s port 22" % (i, public_ip))
+    for r in env.firewall:
+        rule = re.sub(r"%(?!\(\w+\)s)", "%%", r)
+        rule %= env
+        sudo("ufw %s" % rule)
 
     # WAT we should probably only do this if rules have actually changed.
     sudo("ufw disable")
