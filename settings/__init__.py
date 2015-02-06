@@ -33,11 +33,11 @@ SSH_KEY_PATH = '~/.ssh/id_rsa'
 # assume you are adding cotton as a submodule at build/cotton/.  If you place the
 # submodule elsewhere in your code, you will need to override these values in your
 # local cotton_settings.py (or merge the contents into your own requirements files).
-PIP_REQUIREMENTS_PATH = ['build/cotton/requirements/pip.txt']
-APT_REQUIREMENTS_PATH = ['build/cotton/requirements/apt.txt']
+PIP_REQUIREMENTS_PATH = ['requirements/pip.txt']
+APT_REQUIREMENTS_PATH = ['requirements/apt.txt']
 
 # Note: may be platform-dependant!
-LOCALE = 'en.US_UTF-8'
+LOCALE = 'en_US.UTF-8'
 
 # timezone defaults to UTC; override in your local configs.
 TIMEZONE = 'UTC'
