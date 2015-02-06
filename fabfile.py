@@ -660,7 +660,7 @@ def install_postfix(relay=None):
 
 
 @task
-def install_iojs(version='latest'):
+def install_iojs(version='latest', target='linux-x64'):
     """
     Install the specified io.js distribution into the project virtualenv.
     """
@@ -674,8 +674,8 @@ def install_iojs(version='latest'):
     if not res.status_code == 200:
         res.raise_for_status()
 
-    # this is nubbin's required distro; adjust to taste.
-    target = 'linux-x64.tar.gz'
+    # s required distro; adjust to taste.
+    target = '%s.tar.gz' % target
 
     # locate the shasum and the filename we need
     match = [l for l in res.text.split('\n') if target in l]
@@ -704,7 +704,7 @@ def install_iojs(version='latest'):
     # upload the distro to the tmp dir, and extract it into the virtualenv path
     put(fn, tmpdir)
     with cd(env.virtualenv_path):
-        run("tar -o --strip-components=1 -xaf % fn")
+        run("tar -o --no-overwrite-dir --strip-components=1 -xaf %s/%s" % (tmpdir, fn))
 
         # clean up
         with cd(tmpdir):
