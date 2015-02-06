@@ -353,7 +353,8 @@ def npm(modules):
     """
     Installs one or more iojs modules using npm
     """
-    return run("npm install %s --save" % modules)
+    with project(env):
+        return run("npm install %s --save" % modules)
 
 
 @task
