@@ -529,12 +529,13 @@ def install_iojs_dependencies():
     with cd(env.virtualenv_path):
         reqs = ''
         for p in getattr(env, 'npm_requirements_path', []):
-            fn = env.project_root + '/' + p
-            if exists(fn):
+            fn = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
+            if os.path.exists(fn):
                 with open(fn, 'r') as f:
                     for pkg in f.read().split('\n'):
                         reqs = "%s %s" % (reqs, pkg.strip())
-        return npm(reqs)
+        if reqs:
+            return npm(reqs)
 
 
 @task
