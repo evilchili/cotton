@@ -349,6 +349,14 @@ def apt(packages):
 
 
 @task
+def npm(modules):
+    """
+    Installs one or more iojs modules using npm
+    """
+    return run("npm install %s --save" % modules)
+
+
+@task
 def pip(packages):
     """
     Installs one or more Python packages within the virtual environment.
@@ -512,6 +520,22 @@ def create_virtualenv():
             # for target in env.upload_targets:
             #    put("%s/%s" %
             #        (root, target), env.project_root, use_sudo=True, mirror_local_mode=True)
+
+
+@task
+def install_iojs_dependencies():
+    """
+    Install io.js modules listed in the npm_requirements_path members
+    """
+    with project(env):
+        reqs = ''
+        for p in getattr(env, 'npm_requirements_path', []):
+            fn = env.project_root + '/' + p
+            if exists(fn):
+                with open(fn, 'r') as f:
+                    for pkg in f.read().split('\n'):
+                        reqs = "%s %s" % (reqs, pkg.strip())
+        return npm(reqs)
 
 
 @task
