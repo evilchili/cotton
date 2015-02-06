@@ -112,7 +112,7 @@ def upload_template_and_reload(name):
     related service.
     """
     template = get_templates()[name]
-    local_path = template["local_path"]
+    local_path = os.path.abspath(template["local_path"])
     if not os.path.exists(local_path):
         project_root = os.path.dirname(os.path.abspath(__file__))
         local_path = os.path.join(project_root, local_path)
@@ -140,6 +140,15 @@ def upload_template_and_reload(name):
         sudo("chmod %s %s" % (mode, remote_path))
     if reload_command:
         sudo(reload_command)
+
+
+def upload_all_templates():
+    """
+    Upload all configured templates and reload the related services.
+    """
+    for template in env.templates:
+        n = template['name']
+        upload_template_and_reload(n)
 
 
 def get_iface_for_subnet(subnet):
@@ -511,6 +520,7 @@ def install_dependencies():
     for p in env.apt_requirements_path:
         fn = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
         reqs = ''
+        print "Installing dependencies from %s" % fn
         with open(fn, 'r') as f:
             for pkg in f.read().split('\n'):
                 reqs = "%s %s" % (reqs, pkg.strip())
@@ -648,7 +658,7 @@ def bootstrap():
     set_locale()
     install_dependencies()
     firewall()
-    upload_template_and_reload('sudoers')
+    upload_all_templates()
     create_staff()
 
     if env.smtp_host:
