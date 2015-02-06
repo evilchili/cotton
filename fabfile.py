@@ -269,9 +269,9 @@ def set_project_perms():
     the running application.
     """
 
-    sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.virtualenv_home))
-    sudo("find %s -type d -exec chmod 2775 {} \\;" % env.virtualenv_home)
-    sudo("find %s -type f -exec chmod g+rw {} \\;" % env.virtualenv_home)
+    sudo("chown -R %s:%s %s" % (env.project_user, env.project_group, env.virtualenv_path))
+    sudo("find %s -type d -exec chmod 2775 {} \\;" % env.virtualenv_path)
+    sudo("find %s -type f -exec chmod g+rw {} \\;" % env.virtualenv_path)
 
 
 ######################################################################
@@ -494,7 +494,6 @@ def create_virtualenv():
                     print "\nAborting!"
                     return False
             remove_virtualenv()
-            remove_templates()
 
         # create the new virtualenv and project root
         sudo("virtualenv %s" % env.project_name)
@@ -527,7 +526,7 @@ def install_iojs_dependencies():
     """
     Install io.js modules listed in the npm_requirements_path members
     """
-    with project(env):
+    with cd(env.virtualenv_path):
         reqs = ''
         for p in getattr(env, 'npm_requirements_path', []):
             fn = env.project_root + '/' + p
