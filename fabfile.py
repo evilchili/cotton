@@ -321,7 +321,7 @@ def sudo(command, show=True):
 
 
 @task
-def remove_virtualenv():
+def remove_project():
     """
     Blow away the current project
     """
@@ -469,7 +469,7 @@ def git_push(rev=None):
 
 
 @task
-def create_virtualenv():
+def create_project():
     """
     (re)create a virtualenv for a python project deployment
 
@@ -493,7 +493,7 @@ def create_virtualenv():
                 if prompt.lower() != "yes":
                     print "\nAborting!"
                     return False
-            remove_virtualenv()
+            remove_project()
 
         # create the new virtualenv and project root
         sudo("virtualenv %s" % env.project_name)
@@ -646,7 +646,7 @@ def install():
 
     create_project_user()
     if not exists(env.virtualenv_home) or not exists(env.project_root):
-        create_virtualenv()
+        create_project()
         install_python_dependencies()
         return True
     return False
