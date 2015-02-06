@@ -10,6 +10,8 @@ from fabric.contrib.files import exists, upload_template
 from fabric.colors import green, blue, yellow, red
 from contextmanagers import project  # , log_call, virtualenv
 from subprocess import check_output, check_call
+import hashlib
+import requests
 #from fabric.exceptions import NetworkError
 #from tempfile import mkstemp
 
@@ -65,6 +67,16 @@ def add_line_if_missing(target, text):
     echo_cmd = 'echo "%s" >> "%s"' % (text, tempfile)
     mv_cmd = 'mv %s "%s"' % (tempfile, target)
     sudo("%s && %s && %s" % (grep_cmd, echo_cmd, mv_cmd))
+
+
+def check_shasum(filename, sha):
+    """
+    Compare the SHA256 checksum of a the specified file against the provided string.
+    """
+    local_sha = hashlib.sha256(open(filename, 'rb').read()).hexdigest()
+    if local_sha != sha:
+        raise Exception
+    return local_sha == sha
 
 
 def print_command(command):
@@ -645,6 +657,58 @@ def install_postfix(relay=None):
         sudo("/usr/sbin/postconf -e relayhost=%s" % relay)
 
     sudo("/usr/sbin/postfix reload")
+
+
+@task
+def install_iojs(version='latest'):
+    """
+    Install the specified io.js distribution into the project virtualenv.
+    """
+
+    if version is not 'latest' and version[0] != 'v':
+        version = 'v' + version
+
+    # retrieve the SHA256 sums list, which will helpfully tell us what distros are available
+    base_url = 'https://iojs.org/dist/' + version
+    res = requests.get(base_url + '/SHASUMS256.txt')
+    if not res.status_code == 200:
+        res.raise_for_status()
+
+    # this is nubbin's required distro; adjust to taste.
+    target = 'linux-x64.tar.gz'
+
+    # locate the shasum and the filename we need
+    match = [l for l in res.text.split('\n') if target in l]
+    if not match:
+        raise ("Could not locate signature for target '%s'" % target)
+    sha, fn = match[0].split()
+
+    if os.path.exists(fn) and not check_shasum(fn, sha):
+        os.remove(fn)
+
+    # if the io.js archive doesn't already exist locally, download it.
+    if not os.path.exists(fn):
+        res = requests.get(base_url + '/' + fn, stream=True)
+        with open(fn, 'wb') as f:
+            for chunk in res.iter_content(chunk_size=4096):
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
+    if not check_shasum(fn, sha):
+        raise Exception("Downloaded %s but the SHASUM does not match SHASUMS256.txt!")
+
+    # create a temporary directory, if one does not already exist
+    tmpdir = env.virtualenv_path + '/tmp'
+    run('mkdir -p %s' % tmpdir)
+
+    # upload the distro to the tmp dir, and extract it into the virtualenv path
+    put(fn, tmpdir)
+    with cd(env.virtualenv_path):
+        run("tar -o --strip-components=1 -xaf % fn")
+
+        # clean up
+        with cd(tmpdir):
+            run("rm -f %s" % fn)
 
 
 @task
