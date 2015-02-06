@@ -359,7 +359,7 @@ def set_locale(locale=None):
         if ret.return_code != 0:
             raise Exception("Unsupported locale; check %s" % supported)
 
-    sudo("echo 'LANG=\"{0]\"\nLC_ALL=\"{0}\" > /etc/default/locale".format(locale))
+    sudo('echo "LANG=\"{0}\"\\nLC_ALL=\"{0}\"" > /etc/default/locale'.format(locale))
 
 
 @task
