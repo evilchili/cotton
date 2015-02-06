@@ -60,6 +60,8 @@ SMTP_RELAY = None
 USE_GIT = True
 GIT_BRANCH = 'master'
 
+
+# Default firewall rules that will be applied by the firewall() task.
 FIREWALL = [
     "default deny incoming",
     "default allow outgoing",
@@ -73,6 +75,10 @@ TEMPLATES = [
         "remote_path": "/etc/sudoers",
     },
 ]
+
+# list all services that should be running here; each member of the list should be the name
+# of a sysvinit script that can respond to the start and status commands.
+ENSURE_RUNNING = []
 
 
 # attempt to load environment-specific settings

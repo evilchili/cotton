@@ -648,6 +648,21 @@ def install_postfix(relay=None):
 
 
 @task
+def ensure_running(service=None):
+    """
+    Ensure all services listed in settings.ENSURE_RUNNING are running
+    """
+
+    if not service:
+        svcs = env.ensure_running
+    else:
+        svcs = [service]
+
+    for svc in svcs:
+        sudo("/etc/init.d/{0} status || /etc/init.d/{0} start".format(svc))
+
+
+@task
 def bootstrap():
     """
     Meta-task that bootstraps the base system; must be run as root
@@ -671,6 +686,8 @@ def bootstrap():
 
     if env.smtp_host:
         install_postfix()
+
+    ensure_running()
 
 
 if __name__ == '__main__':
