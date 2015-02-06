@@ -51,7 +51,7 @@ ADMIN_IPS = []
 STAFF_USERS = [SSH_USER]
 
 # install outbound smtp services via postfix, if true
-SMTP_HOST = True
+SMTP_HOST = False
 
 # if SMTP_RELAY is set, configure postfix to relay outbound SMTP through this host.
 SMTP_RELAY = None
