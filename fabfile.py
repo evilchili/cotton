@@ -559,8 +559,7 @@ def firewall():
         sudo("ufw %s" % rule)
 
     # WAT we should probably only do this if rules have actually changed.
-    sudo("ufw disable")
-    sudo("ufw enable")
+    sudo("ufw reload")
 
 
 @task
