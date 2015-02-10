@@ -115,11 +115,6 @@ def bootstrap():
     firewall()
     util.upload_all_templates()
     create_staff()
-
-    if env.smtp_host:
-        from .. import postfix
-        postfix.install()
-
     ensure_running()
 
 
