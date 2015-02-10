@@ -7,7 +7,7 @@
 
 Cotton is a python library that aims to radically simplify automated configuration management for Continuous Delivery environments. Cotton is built upon Fabric, and uses Fabric's concept of *tasks* to provide all the tools necessary to bootstrap new hosts, configure system packages, and deploy full application stacks.
 
-Cotton is designed first for python applications being deployed to Debian systems, but is easy to extend for other environments.
+Cotton is designed first for python applications being deployed to Debian systems, but is easy to extend for other environments; see for example the `cotton.fabfile.iojs` submodule.
 
 
 ## Rationale
@@ -18,6 +18,9 @@ Instead, Cotton aims to provide the smallest possible set of tools that can:
 * bootstrap freshly-deployed Debian or Ubuntu systems with commonly-required packages for development and deployment;
 * deploy, redeploy and heal python application stacks, and
 * remain intelligible to developers with no knowledge of declarative configuration management.
+
+Also, unlike full-blown configuration management packages, cotton makes no philosophical demands on how you use it -- you can ignore the entire `system` module, for example, and only use the `project` module for python application deployments. You can selectively enable or disable entire sets of features, simply by choosing what modules to import into your config.  This flexibility is a direct result of leveraging fabric's excellent namespacing features.
+
 
 ## Quickstart
 
@@ -31,12 +34,12 @@ To add cotton to an existing project as a submodule:
 
 To test your config, switch to your `/build` directory and run:
 ```
-% fab cotton.run:"uptime"
+% fab system.run:"uptime"
 ```
 
 This should result in output similar to the following:
 ```
-[host1.local] Executing task 'cotton.run'
+[host1.local] Executing task 'system.run'
 
 $ uptime ->
 

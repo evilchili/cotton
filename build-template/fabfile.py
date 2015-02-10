@@ -2,7 +2,7 @@ from fabric.api import task  # , env
 
 # import the preconfigured tasks that ship with cotton. Loading fabfile submodules
 # here will expose their tasks to the fab command-line.
-from cotton.fabfile import set_env, project
+from cotton.fabfile import set_env, system, project
 
 # load your custom settings from this module
 set_env('cotton_settings')
@@ -17,12 +17,10 @@ set_env('cotton_settings')
 # cotton_settings.py file.
 #
 # Remember that if you are using cotton to configure your base system as well as manage your
-# application deployments, you'll want to run the system.bootstrap() task before # deploying
-# your application for the first time. To do so, import the system module above, thus:
+# application deployments, you'll want to run the system.bootstrap() task before deploying
+# your application for the first time:
 #
-# from cotton.fabfile import set_env, project, system
-#
-# You can then execute the command "fab system.bootstrap."
+# fab system.bootstrap
 #
 # Note that if you choose not to use cotton's system module to manage your server configs,
 # you'll need to make sure the packages listed in requirements/apt.txt are present.
