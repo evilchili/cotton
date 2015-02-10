@@ -1,9 +1,12 @@
-from ..fabfile import (
-    env, run as _run, sudo, task, print_command, settings, apt, cd, exists,
-    upload_all_templates, firewall
-)
-from fabric.api import execute
+from fabric.api import task, execute, cd, env, settings
+from fabric.contrib.files import exists
+from .. import util, system
 import re
+
+__all__ = [
+    'find_missing_pks', 'configure_replication', 'start_replication', 'install', 'run',
+    'create_user', 'create', 'drop', 'dump', 'restore', 'master_status'
+]
 
 
 @task
@@ -12,7 +15,8 @@ def find_missing_pks():
     List all tables which contain no primary key.
     """
 
-    # cf http://scale-out-blog.blogspot.com/2012/04/if-you-must-deploy-multi-master.html
+    # cf
+    # http://scale-out-blog.blogspot.com/2012/04/if-you-must-deploy-multi-master.html
     sql = """
         SELECT t.table_schema, t.table_name FROM information_schema.tables t
         WHERE NOT EXISTS (
@@ -88,11 +92,11 @@ def run(sql, db=False, show=True):
     Execute an SQL statement, optionally using the specified database.
     """
     if db:
-        out = _run('echo "%s" | sudo mysql %s' % (sql, db))
+        out = ('echo "%s" | sudo mysql %s' % (sql, db))
     else:
-        out = _run('echo "%s" | sudo mysql' % sql)
+        out = ('echo "%s" | sudo mysql' % sql)
     if show:
-        print_command(sql)
+        util.print_command(sql)
     return out
 
 
@@ -104,11 +108,11 @@ def install(server_id=None):
 
     # install mysql-server with the root password defined in settings.py
     cmd = "debconf-set-selections <<< 'mysql-server"
-    sudo("%s mysql-server/root_password password %s'" %
-         (cmd, env.mysql_root_pass), show=False)
-    sudo("%s mysql-server/root_password_again password %s'" %
-         (cmd, env.mysql_root_pass), show=False)
-    apt("mysql-server mysql-client")
+    system.sudo("%s mysql-server/root_password password %s'" %
+                (cmd, env.mysql_root_pass), show=False)
+    system.sudo("%s mysql-server/root_password_again password %s'" %
+                (cmd, env.mysql_root_pass), show=False)
+    system.apt("mysql-server mysql-client")
 
     # whether it was passed as a parameter or included in the settings,
     # we must have a server_id to continue. If the server is part of a
@@ -124,17 +128,18 @@ def install(server_id=None):
         raise Exception("You must specify a unique MYSQL_SERVER_ID.")
 
     # create both the /etc/my.cnf and /root/.my.cnf files
-    upload_all_templates(env.mysql_templates)
+    util.upload_all_templates(env.mysql_templates)
 
     # configure replication, if necessary
     if env.mysql_replication_user and env.mysql_replication_pass:
         configure_replication()
 
-    # some things timezone data to be present in the 'mysql' database (notably django stuff).
-    sudo("mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql")
+    # some things timezone data to be present in the 'mysql' database (notably
+    # django stuff).
+    system.sudo("mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql")
 
     # update the firewall on the server, if necessary
-    firewall(env.mysql_firewall)
+    system.firewall(env.mysql_firewall)
 
 
 @task
@@ -145,7 +150,7 @@ def create_user(user, pwd, db=None):
     safe_pass = pwd.replace("'", "\'")
     with settings(warn_only=True):
         cmd = "CREATE USER '%s'@'%%' IDENTIFIED BY '%s';"
-        print_command(cmd % (user, '*' * len(safe_pass)))
+        util.print_command(cmd % (user, '*' * len(safe_pass)))
         run(cmd % (user, safe_pass))
 
         if db:
@@ -164,8 +169,10 @@ def create():
     for (label, db) in env.mysql_databases.iteritems():
 
         with settings(warn_only=True):
-            # WAT: the the default character encoding should probably honor env.locale
-            run("CREATE DATABASE %s CHARACTER SET utf8 COLLATE utf8_general_ci;" % db['NAME'])
+            # WAT: the the default character encoding should probably honor
+            # env.locale
+            run("CREATE DATABASE %s CHARACTER SET utf8 COLLATE utf8_general_ci;" %
+                db['NAME'])
 
         # create the database user and grant full privs on the database
         create_user(db['USER'], db['PASSWORD'], db=db['NAME'])
@@ -182,7 +189,8 @@ def drop(name):
                 run("DROP USER '%s'@'%%'" % db['USER'])
                 run("DROP DATABASE IF EXISTS %s;" % (db['NAME']))
                 return True
-    raise Exception("Could not locate a database named '%s' in your settings; aborting." % name)
+    raise Exception(
+        "Could not locate a database named '%s' in your settings; aborting." % name)
 
 
 @task
@@ -198,7 +206,8 @@ def dump(filename='%(label)s.sql'):
 
     with cd(env.project_root):
         for (label, db) in env.databases.iteritems():
-            sudo("mysqldump --opt --lock-all-tables %s > %s" % (db['NAME'], filename))
+            system.sudo("mysqldump --opt --lock-all-tables %s > %s" %
+                        (db['NAME'], filename))
 
 
 @task
@@ -209,11 +218,13 @@ def restore(name, filename, clear=False):
 
     with cd(env.project_root):
         if not exists(filename):
-            raise Exception("Dump file '%s' does not exist or could not be read." % filename)
+            raise Exception(
+                "Dump file '%s' does not exist or could not be read." % filename)
 
         # WAT This is all kinds of dangerous, and should *at least* create copies of the tables
         # before dropping the database. It may be wiser to restore the dump to a new database,
-        # configure it, rename the old/new dbs, and drop the old if the new is okay.
+        # configure it, rename the old/new dbs, and drop the old if the new is
+        # okay.
         if clear:
             if not env.no_prompts:
                 prompt = raw_input(
@@ -223,7 +234,7 @@ def restore(name, filename, clear=False):
                     print "\nAborting!"
                     return False
             drop(name)
-        sudo("mysql %s < %s" % (name, filename))
+        system.sudo("mysql %s < %s" % (name, filename))
 
 
 @task

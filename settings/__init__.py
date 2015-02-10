@@ -81,7 +81,7 @@ TEMPLATES = [
 ENSURE_RUNNING = []
 
 # import the default mysql settings, if any
-exec("from mysql.settings import *" in locals()
+exec("from mysql import *") in locals()
 
 # attempt to load environment-specific settings
 e = os.environ.get('COTTON_TARGET', None)
