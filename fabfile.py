@@ -109,10 +109,14 @@ def print_header(func):
     return logged
 
 
-def get_templates():
+def get_templates(templates=None):
     """
     Returns each of the templates with env vars injected.
     """
+
+    if not templates:
+        templates = env.templates
+
     injected = {}
     for t in env.templates:
         name = t['name']
@@ -120,12 +124,12 @@ def get_templates():
     return injected
 
 
-def upload_template_and_reload(name):
+def upload_template_and_reload(name, templates=None):
     """
     Uploads a template only if it has changed, and if so, reload a
     related service.
     """
-    template = get_templates()[name]
+    template = get_templates(templates)[name]
     local_path = os.path.abspath(template["local_path"])
     if not os.path.exists(local_path):
         project_root = os.path.dirname(os.path.abspath(__file__))
@@ -156,11 +160,14 @@ def upload_template_and_reload(name):
         sudo(reload_command)
 
 
-def upload_all_templates():
+def upload_all_templates(templates=None):
     """
     Upload all configured templates and reload the related services.
     """
-    for template in env.templates:
+    if not templates:
+        templates = env.templates
+
+    for template in templates:
         n = template['name']
         upload_template_and_reload(n)
 
@@ -579,11 +586,15 @@ def install_dependencies():
 
 
 @task
-def firewall():
+def firewall(firewall=None):
     """
     Configure a default firewall allowing inbound SSH from admin IPs. We use ufw mostly
     because its syntax is more readable than raw iptables, which is a good thing in scripts.
     """
+
+    # What set of rules should we apply? by default, use the FIREWWALL variable from settings.
+    if not firewall:
+        firewall = env.firewall
 
     # WAT you could flush existing rules here, to completely wipe out any changes that have
     # been made. This is a Good Idea, and you should do it. Meaning me, meaning I should do it.

@@ -80,6 +80,8 @@ TEMPLATES = [
 # of a sysvinit script that can respond to the start and status commands.
 ENSURE_RUNNING = []
 
+# import the default mysql settings, if any
+exec("from mysql.settings import *" in locals()
 
 # attempt to load environment-specific settings
 e = os.environ.get('COTTON_TARGET', None)
