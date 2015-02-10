@@ -93,7 +93,7 @@ def upload_template_and_reload(name, templates=None):
     remote_data = ""
     if exists(remote_path):
         with hide("stdout"):
-            remote_data = sudo("cat %s" % remote_path, show=False)
+            remote_data = sudo("cat %s" % remote_path)
     with open(local_path, "r") as f:
         local_data = f.read()
         # Escape all non-string-formatting-placeholder occurrences of '%':
@@ -130,7 +130,7 @@ def get_iface_for_subnet(subnet):
     """
     subnet = subnet.replace('.', '\\.')
     cmd = "/sbin/ifconfig | grep -B1 'inet addr:%s' | cut -d' ' -f1" % subnet
-    return sudo(cmd, show=True)
+    return sudo(cmd)
 
 
 def get_ipv4(iface):
@@ -138,7 +138,7 @@ def get_ipv4(iface):
     Return the IPv4 address assigned to the specified NIC.
     """
     cmd = "/sbin/ifconfig %s | grep 'inet addr:' | cut -d: -f 2 |cut -d' ' -f1" % iface
-    return sudo(cmd, show=True)
+    return sudo(cmd)
 
 
 def get_public_ip(iface='eth0'):
