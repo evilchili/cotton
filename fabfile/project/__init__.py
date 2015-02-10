@@ -275,4 +275,4 @@ def install_dependencies():
             # WAT Should we print a warning here? meh.
             fn = env.project_root + '/' + p
             if exists(fn):
-                util.pip("-r %s" % fn)
+                pip("-r %s" % fn)
