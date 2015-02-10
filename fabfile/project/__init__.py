@@ -3,6 +3,7 @@ from subprocess import check_output, check_call
 from fabric.api import env, task, cd, settings
 from fabric.contrib.files import exists
 from .. import util, system
+from .. contextmanagers import project  # , log_call, virtualenv
 
 __all__ = [
     'create', 'install', 'remove', 'remove_templates',
@@ -166,7 +167,7 @@ def install():
     create_user()
     if not exists(env.virtualenv_home) or not exists(env.project_root):
         create()
-        system.install_python_dependencies()
+        install_dependencies()
         return True
     return False
 
@@ -257,3 +258,21 @@ def pip(packages):
     Installs one or more Python packages within the virtual environment.
     """
     return system.sudo("pip install %s" % packages)
+
+
+@task
+def install_dependencies():
+    """
+    Install any missing or updated python modules listed in PIP_REQUIREMENTS_PATH
+    """
+
+    with project(env):
+        for p in getattr(env, 'pip_requirements_path', []):
+
+            # skip any requirements file that doesn't exist on the remote host. This lets us
+            # ignore cotton's default requirements, if they're listed in the env.
+            #
+            # WAT Should we print a warning here? meh.
+            fn = env.project_root + '/' + p
+            if exists(fn):
+                util.pip("-r %s" % fn)

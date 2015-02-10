@@ -1,6 +1,5 @@
 from fabric.api import env, task, settings, put, hide, run as frun, sudo as fsudo
 from fabric.contrib.files import exists
-from .. contextmanagers import project  # , log_call, virtualenv
 from .. import util
 import re
 import os
@@ -113,7 +112,7 @@ def bootstrap():
     set_timezone()
     set_locale()
     install_dependencies()
-    util.firewall()
+    firewall()
     util.upload_all_templates()
     create_staff()
 
@@ -122,24 +121,6 @@ def bootstrap():
         postfix.install()
 
     ensure_running()
-
-
-@task
-def install_python_dependencies():
-    """
-    Install any missing or updated python modules listed in PIP_REQUIREMENTS_PATH
-    """
-
-    with project(env):
-        for p in getattr(env, 'pip_requirements_path', []):
-
-            # skip any requirements file that doesn't exist on the remote host. This lets us
-            # ignore cotton's default requirements, if they're listed in the env.
-            #
-            # WAT Should we print a warning here? meh.
-            fn = env.project_root + '/' + p
-            if exists(fn):
-                util.pip("-r %s" % fn)
 
 
 @task
