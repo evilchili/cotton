@@ -1,6 +1,8 @@
 from fabric.api import task, env
 from .. import system
 
+__all__ = ['install']
+
 
 @task
 def install(relay=None):
