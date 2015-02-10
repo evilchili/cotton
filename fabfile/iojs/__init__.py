@@ -75,7 +75,7 @@ def install_dependencies():
                     for pkg in f.read().split('\n'):
                         reqs = "%s %s" % (reqs, pkg.strip())
         if reqs:
-            return util.npm(reqs)
+            return npm(reqs)
 
 
 @task
