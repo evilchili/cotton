@@ -7,10 +7,15 @@ from ..system import _run as run
 
 
 @task
-def install(version='latest', target='linux-x64'):
+def install(version=None, platform=None):
     """
     Install the specified io.js distribution into the project virtualenv.
     """
+
+    if not version:
+        version = env.iojs_version
+    if not platform:
+        platform = env.iojs_platform
 
     if version is not 'latest' and version[0] != 'v':
         version = 'v' + version
@@ -23,7 +28,7 @@ def install(version='latest', target='linux-x64'):
         res.raise_for_status()
 
     # s required distro; adjust to taste.
-    target = '%s.tar.gz' % target
+    target = '%s.tar.gz' % platform
 
     # locate the shasum and the filename we need
     match = [l for l in res.text.split('\n') if target in l]
