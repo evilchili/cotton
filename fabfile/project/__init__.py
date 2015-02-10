@@ -21,7 +21,7 @@ def remove():
 
 
 @task
-def remove_tmeplates():
+def remove_templates():
     """
     Remove any files we have deployed from templates
     """
