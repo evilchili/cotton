@@ -34,6 +34,35 @@ To add cotton to an existing project as a submodule:
 
 To test your config, switch to your `/build` directory and run:
 ```
+% fab -l
+```
+
+This should list the tasks that available to run in the default config, which includes the `system` and `project` modules, 
+as well as the example `ship` task from the fabfile:
+```
+Available commands:
+
+    ship                         Deploy the current branch to production
+    project.create               (re)create a virtualenv for a python project deployment
+    project.git_push             Push the local git repo to the remote hosts
+    project.install              Create the python virtualenv and deployment directories if necessary
+    project.pip                  Installs one or more Python packages within the virtual environment.
+    project.remove               Blow away the current project
+    system.apt                   Installs one or more system packages via apt
+    system.bootstrap             Meta-task that bootstraps the base system; must be run as root
+    system.create_staff          Create any missing staff accounts
+    system.ensure_running        Ensure all services listed in settings.ENSURE_RUNNING are running
+    system.firewall              Configure a default firewall allowing inbound SSH from admin IPs
+    system.install_dependencies  Install or update system dependencies listed in APT_REQUIREMENTS_PATH
+    system.run                   Runs a shell comand on the remote server
+    system.set_locale            Set the system locale
+    system.set_timezone          Set the system timezone
+    system.sudo                  Runs a command as sudo, unless the current user is root, in which case just run it
+```
+
+You can test that your SSH configuration is correct by executing a simple `run` task:
+
+```
 % fab system.run:"uptime"
 ```
 
