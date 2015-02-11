@@ -1,3 +1,6 @@
+import os
+COTTON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 # By default projects will be deployed in VIRTUALENV_HOME/PROJECT_NAME
 VIRTUALENV_HOME = '/usr/local/deploy'
 
@@ -18,8 +21,8 @@ PROJECT_GROUP = None
 # assume you are adding cotton as a submodule at build/cotton/.  If you place the
 # submodule elsewhere in your code, you will need to override these values in your
 # local cotton_settings.py (or merge the contents into your own requirements files).
-PIP_REQUIREMENTS_PATH = ['requirements/pip.txt']
-APT_REQUIREMENTS_PATH = ['requirements/apt.txt']
+PIP_REQUIREMENTS_PATH = [COTTON_PATH + '/requirements/pip.txt']
+APT_REQUIREMENTS_PATH = [COTTON_PATH + '/requirements/apt.txt']
 
 # Use git for shipping application code to the remote hosts
 USE_GIT = True

@@ -1,6 +1,6 @@
 import os
 from subprocess import check_output, check_call
-from fabric.api import env, task, cd, settings
+from fabric.api import env, task, cd, settings, put
 from fabric.contrib.files import exists
 from .. import util, system
 from .. contextmanagers import project  # , log_call, virtualenv
@@ -46,8 +46,12 @@ def git_push(rev=None):
     if not exists(env.project_root):
         raise Exception(
             "The project root is missing! Do you need to run the install() task?")
+
+    u = env.user
+    env.user = env.ssh_user
     with cd(env.project_root):
         system.run("git init")
+        system.run("git config --add receive.denyCurrentBranch ignore")
         set_permissions()
 
     remotes = get_git_remotes()
@@ -95,6 +99,8 @@ def git_push(rev=None):
         # fix up the permissions immediately after completing the push, so we don't
         # try to interact with files we cannot read or modify.
         set_permissions()
+
+    env.user = u
 
 
 @task
@@ -247,9 +253,19 @@ def create_user():
         print result
         raise SystemExit()
 
+    system.run("mkdir -p /home/%s/.ssh" % env.project_user)
+    key = "keys/%s.pub" % env.project_user
+    if (os.path.exists(key)):
+        put(key, "/home/%s/.ssh/authorized_keys" % env.project_user)
+        system.run("chmod 600 /home/%s/.ssh/authorized_keys" % env.project_user)
+    else:
+        print "Warning: No public key found for user %s!" % env.project_user
+    system.run("chown -R {0}:{0} /home/{0}/.ssh".format(env.project_user))
+    system.run("chmod 700 /home/%s/.ssh" % env.project_user)
+
     # We place the fabric ssh user in the project group, because the
     # fabric user needs to be able to modify files owned by the user.
-    system.sudo("usermod -a -G {1} {0}".format(env.fabric_user, env.project_group))
+    system.sudo("usermod -a -G {1} {0}".format(env.ssh_user, env.project_group))
 
 
 @task

@@ -102,8 +102,8 @@ def upload_template_and_reload(name, templates=None):
     clean = lambda s: s.replace("\n", "").replace("\r", "").strip()
     if clean(remote_data) == clean(local_data):
         return
-    upload_template(local_path, remote_path, env,
-                    use_sudo=not env.user == "root", backup=False)
+    print "Uploading %s => %s" % (local_path, remote_path)
+    upload_template(local_path, remote_path, env, use_sudo=not env.user == "root", backup=False)
     if owner:
         sudo("chown %s %s" % (owner, remote_path))
     if mode:

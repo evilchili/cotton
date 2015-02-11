@@ -42,4 +42,4 @@ TEMPLATES = [
 
 # list all services that should be running here; each member of the list should be the name
 # of a sysvinit script that can respond to the start and status commands.
-ENSURE_RUNNING = []
+ENSURE_RUNNING = ['fail2ban' 'ntpd']

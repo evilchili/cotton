@@ -37,7 +37,7 @@ def create_staff():
                 key = "keys/%s.pub" % u
                 if (os.path.exists(key)):
                     put(key, "/home/%s/.ssh/authorized_keys" % u)
-                run("chmod 600 /home/%s/.ssh/authorized_keys" % u)
+                    run("chmod 600 /home/%s/.ssh/authorized_keys" % u)
                 run("chown -R %s:%s /home/%s/.ssh" % (u, u, u))
                 run("chmod 700 /home/%s/.ssh" % u)
             else:
@@ -128,7 +128,7 @@ def install_dependencies():
     sudo("dpkg --configure -a --force-confdef --force-confold")
 
     # step through each file listed in the APT_REQUIREMENTS_PATH, and append every
-    # package name found therein to a list of packages we will hand to util.apt()
+    # package name found therein to a list of packages we will hand to apt()
     # to install.
     for p in env.apt_requirements_path:
         fn = os.path.abspath(
@@ -138,7 +138,7 @@ def install_dependencies():
         with open(fn, 'r') as f:
             for pkg in f.read().split('\n'):
                 reqs = "%s %s" % (reqs, pkg.strip())
-    return util.apt(reqs)
+    return apt(reqs)
 
 
 @task
@@ -206,6 +206,7 @@ def firewall(firewall=None):
         sudo("ufw %s" % rule)
 
     # WAT we should probably only do this if rules have actually changed.
+    sudo("ufw enable")
     sudo("ufw reload")
 
 
