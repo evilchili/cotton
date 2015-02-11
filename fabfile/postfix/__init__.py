@@ -17,13 +17,14 @@ def install(relay=None):
     system.sudo('debconf-set-selections <<< "postfix postfix/main_mailer_type string \'%s\'"' % (
         'Satellite' if relay else 'Internet Site'
     ))
+    system.sudo("debconf-set-selections <<< 'postfix postfix/mailname string %s'" % env.host)
 
     # configure the relayhost or mailname, as required
     if relay:
         system.sudo("debconf-set-selections <<< 'postfix postfix/relayhost %s'" % relay)
 
-    else:
-        system.sudo("debconf-set-selections <<< 'postfix postfix/mailname string %s'" % env.host)
+    #else:
+    #    system.sudo("debconf-set-selections <<< 'postfix postfix/mailname string %s'" % env.host)
 
     # install postfix
     system.apt('postfix')

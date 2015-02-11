@@ -89,8 +89,7 @@ def ensure_running(service=None):
         svcs = [service]
 
     for svc in svcs:
-        sudo(
-            "/etc/init.d/{0} status || /etc/init.d/{0} start".format(svc))
+        sudo("/etc/init.d/{0} status || /etc/init.d/{0} start".format(svc))
 
 
 @task
@@ -130,10 +129,9 @@ def install_dependencies():
     # step through each file listed in the APT_REQUIREMENTS_PATH, and append every
     # package name found therein to a list of packages we will hand to apt()
     # to install.
+    reqs = ''
     for p in env.apt_requirements_path:
-        fn = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
-        reqs = ''
+        fn = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
         print "Installing dependencies from %s" % fn
         with open(fn, 'r') as f:
             for pkg in f.read().split('\n'):
@@ -189,6 +187,12 @@ def firewall(firewall=None):
     because its syntax is more readable than raw iptables, which is a good thing in scripts.
     """
 
+    # make sure the admin IPs are excluded from fail2ban's jail config
+    ips = env.all_admin_ips.replace(',', ' ')
+    ips = ips.replace('/', '\\/')
+    sudo('sed -i "s/ignoreip = .*/ignoreip = 127.0.0.1\/8 %s/" /etc/fail2ban/jail.conf' % ips)
+    sudo("/etc/init.d/fail2ban restart")
+
     # What set of rules should we apply? by default, use the FIREWWALL
     # variable from settings.
     if not firewall:
@@ -206,7 +210,7 @@ def firewall(firewall=None):
         sudo("ufw %s" % rule)
 
     # WAT we should probably only do this if rules have actually changed.
-    sudo("ufw enable")
+    sudo("echo 'y' | ufw enable")
     sudo("ufw reload")
 
 
