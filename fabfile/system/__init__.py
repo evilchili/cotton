@@ -223,7 +223,8 @@ def firewall(firewall=None):
     because its syntax is more readable than raw iptables, which is a good thing in scripts.
     """
 
-    whitelist_ips()
+    # Disabled until I can determine why fail2ban fails to ignore ADMIN_IPS
+    #whitelist_ips()
 
     # What set of rules should we apply? by default, use the FIREWWALL
     # variable from settings.

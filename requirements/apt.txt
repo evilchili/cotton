@@ -1,6 +1,5 @@
 sudo
 ufw
-fail2ban
 git-core
 vim
 build-essential

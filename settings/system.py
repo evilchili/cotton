@@ -42,4 +42,8 @@ TEMPLATES = [
 
 # list all services that should be running here; each member of the list should be the name
 # of a sysvinit script that can respond to the start and status commands.
-ENSURE_RUNNING = ['fail2ban', 'ntp']
+
+# disabling fail2ban until I can determine why it fails to ignore ADMIN_IPS
+#ENSURE_RUNNING = ['fail2ban', 'ntp']
+
+ENSURE_RUNNING = ['ntp']
