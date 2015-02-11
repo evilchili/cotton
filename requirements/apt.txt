@@ -10,3 +10,4 @@ python-dev
 python-pip
 python-virtualenv
 bsd-mailx
+ntp
