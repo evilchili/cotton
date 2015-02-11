@@ -89,7 +89,7 @@ def ensure_running(service=None):
         svcs = [service]
 
     for svc in svcs:
-        sudo("/etc/init.d/{0} status || /etc/init.d/{0} start".format(svc))
+        sudo("/etc/init.d/{0} start".format(svc))
 
 
 @task
@@ -161,15 +161,15 @@ def sudo(command, show=True):
         util.print_command(command)
         with hide("running"):
             if env.user == "root":
-                return frun(command)
+                return frun(command, pty=False)
             else:
-                return fsudo(command)
+                return fsudo(command, pty=False)
     else:
         with hide("running", "output"):
             if env.user == "root":
-                return frun(command)
+                return frun(command, pty=False)
             else:
-                return fsudo(command)
+                return fsudo(command, pty=False)
 
 
 @task
@@ -188,9 +188,12 @@ def firewall(firewall=None):
     """
 
     # make sure the admin IPs are excluded from fail2ban's jail config
+    apt('fail2ban')
     ips = env.all_admin_ips.replace(',', ' ')
     ips = ips.replace('/', '\\/')
     sudo('sed -i "s/ignoreip = .*/ignoreip = 127.0.0.1\/8 %s/" /etc/fail2ban/jail.conf' % ips)
+    with settings(warn_only=True):
+        sudo('fail2ban-client get ssh actionunban %s' % ips)
     sudo("/etc/init.d/fail2ban restart")
 
     # What set of rules should we apply? by default, use the FIREWWALL
