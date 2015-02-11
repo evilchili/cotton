@@ -89,7 +89,8 @@ def ensure_running(service=None):
         svcs = [service]
 
     for svc in svcs:
-        sudo("/etc/init.d/{0} start".format(svc))
+        util.print_command("Starting %s" % svc)
+        fsudo("/etc/init.d/{0} start".format(svc), pty=False)
 
 
 @task
@@ -161,15 +162,15 @@ def sudo(command, show=True):
         util.print_command(command)
         with hide("running"):
             if env.user == "root":
-                return frun(command, pty=False)
+                return frun(command)
             else:
-                return fsudo(command, pty=False)
+                return fsudo(command)
     else:
         with hide("running", "output"):
             if env.user == "root":
-                return frun(command, pty=False)
+                return frun(command)
             else:
-                return fsudo(command, pty=False)
+                return fsudo(command)
 
 
 @task
@@ -181,20 +182,44 @@ def apt(packages):
 
 
 @task
+def whitelist_ips(ips=None):
+    """
+    Ensure the specified IPs are whitelisted in the fail2ban configuration.
+    """
+
+    if not ips:
+        ips = env.all_admin_ips
+
+    # make sure the admin IPs are excluded from fail2ban's jail config
+    ips = ips.replace(',', ' ')
+    ips = ips.replace('/', '\\/')
+    sudo('sed -i "s/ignoreip = .*/ignoreip = 127.0.0.1\/8 %s/" /etc/fail2ban/jail.conf' % ips)
+    sudo("/etc/init.d/fail2ban restart")
+    unban_ips()
+
+
+@task
+def unban_ips(ips=None):
+
+    if not ips:
+        ips = env.all_admin_ips
+    ips = ips.replace(',', ' ')
+
+    for ip in ips.split():
+        sudo("grep -v %s /var/log/fail2ban.log > /tmp/fail2ban.tmp" % ip)
+        sudo("cp /tmp/fail2ban.tmp /var/log/fail2ban.log")
+        with settings(warn_only=True):
+            sudo("iptables -D fail2ban-ssh -s %s -j DROP" % ip, show=False)
+
+
+@task
 def firewall(firewall=None):
     """
     Configure a default firewall allowing inbound SSH from admin IPs. We use ufw mostly
     because its syntax is more readable than raw iptables, which is a good thing in scripts.
     """
 
-    # make sure the admin IPs are excluded from fail2ban's jail config
-    apt('fail2ban')
-    ips = env.all_admin_ips.replace(',', ' ')
-    ips = ips.replace('/', '\\/')
-    sudo('sed -i "s/ignoreip = .*/ignoreip = 127.0.0.1\/8 %s/" /etc/fail2ban/jail.conf' % ips)
-    with settings(warn_only=True):
-        sudo('fail2ban-client get ssh actionunban %s' % ips)
-    sudo("/etc/init.d/fail2ban restart")
+    whitelist_ips()
 
     # What set of rules should we apply? by default, use the FIREWWALL
     # variable from settings.
