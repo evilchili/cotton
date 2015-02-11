@@ -111,6 +111,10 @@ def bootstrap():
 
     set_timezone()
     set_locale()
+
+    sudo("apt-get update -y -q")
+    sudo("apt-get dist-upgrade -y -q")
+
     install_dependencies()
     firewall()
     util.upload_all_templates()
