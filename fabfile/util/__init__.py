@@ -148,6 +148,5 @@ def get_public_ip(iface='eth0'):
 
     # WAT bad assumption here; we should make this configurable by adding a MANAGED_IFACE to the
     # settings or something.
-    if not getattr(env, 'public_ip', None):
-        env.public_ip = get_ipv4(iface)
+    env.public_ip = get_ipv4(iface)
     return env.public_ip
