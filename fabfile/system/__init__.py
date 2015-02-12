@@ -186,23 +186,6 @@ def apt(packages):
 
 
 @task
-def whitelist_ips(ips=None):
-    """
-    Ensure the specified IPs are whitelisted in the fail2ban configuration.
-    """
-
-    if not ips:
-        ips = env.all_admin_ips
-
-    # make sure the admin IPs are excluded from fail2ban's jail config
-    ips = ips.replace(',', ' ')
-    ips = ips.replace('/', '\\/')
-    sudo('sed -i "s/ignoreip = .*/ignoreip = 127.0.0.1\/8 %s/" /etc/fail2ban/jail.conf' % ips)
-    sudo("/etc/init.d/fail2ban restart")
-    unban_ips()
-
-
-@task
 def unban_ips(ips=None):
 
     if not ips:
@@ -222,9 +205,6 @@ def firewall(firewall=None):
     Configure a default firewall allowing inbound SSH from admin IPs. We use ufw mostly
     because its syntax is more readable than raw iptables, which is a good thing in scripts.
     """
-
-    # Disabled until I can determine why fail2ban fails to ignore ADMIN_IPS
-    #whitelist_ips()
 
     # What set of rules should we apply? by default, use the FIREWWALL
     # variable from settings.

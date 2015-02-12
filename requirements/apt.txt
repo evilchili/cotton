@@ -10,3 +10,4 @@ python-pip
 python-virtualenv
 bsd-mailx
 ntp
+fail2ban

@@ -40,6 +40,9 @@ def set_env(settings_module):
 
     env.all_admin_ips = ','.join(env.admin_ips)
 
+    if not getattr(env, 'whitelisted_ips', None):
+        env.whitelisted_ips = env.admin_ips
+
     # Some sugar to disambiguate references to 'user' in the templates
     env.fabric_user = env.user
 

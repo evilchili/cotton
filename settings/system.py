@@ -34,6 +34,12 @@ FIREWALL = [
 
 TEMPLATES = [
     {
+        "name": "fail2ban_jail_local",
+        "local_path": COTTON_PATH + "/templates/jail.local",
+        "remote_path": "/etc/fail2ban/jail.local",
+        "reload_command": "/etc/init.d/fail2ban restart"
+    },
+    {
         "name": "sudoers",
         "local_path": COTTON_PATH + "/templates/sudoers",
         "remote_path": "/etc/sudoers",
