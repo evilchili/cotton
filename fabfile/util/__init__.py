@@ -1,9 +1,11 @@
 import re
 import os
+import sys
 from functools import wraps
-from fabric.api import env, hide, sudo
+from fabric.api import env, hide, sudo, run
 from fabric.contrib.files import exists, upload_template
 from fabric.colors import green, blue, yellow, red
+from copy import copy
 import hashlib
 
 
@@ -72,7 +74,16 @@ def get_templates(templates=None):
     injected = {}
     for t in env.templates:
         name = t['name']
-        injected[name] = dict([(k, v % env) for k, v in t.items()])
+
+        # Step through the elements of the template dict. If the value is a dict, we inject
+        # the fabric env vars into its members' values, and add the resulting dict to our
+        # return values.  If the template dict item's value is not itself, we treat it as a
+        # string and inject the fabric env vars into it and add that result to our return values.
+        i = {}
+        for k, v in t.items():
+            i[k] = dict([(a, b % env) for a, b in v.items()]) if type(v) is dict else v % env
+        injected[name] = i
+
     return injected
 
 
@@ -86,28 +97,56 @@ def upload_template_and_reload(name, templates=None):
     if not os.path.exists(local_path):
         project_root = os.path.dirname(os.path.abspath(__file__))
         local_path = os.path.join(project_root, local_path)
+
     remote_path = template["remote_path"]
     reload_command = template.get("reload_command")
     owner = template.get("owner")
     mode = template.get("mode")
+
+    # populate the values for the template substitution with the current
+    # fabric environment
+    values = copy(env)
+
+    # if the template config has an 'extras' dict, step through it and
+    # assign the key to the values dict; the value of the new element
+    # can either be a literal or a callable.  If it's a callable, call it.
+    for (k, v) in template.get("extras", {}).items():
+
+        # the value may be a full dotted module path (eg. cotton.fabfile.utils.get_hostname).
+        # If so, check to see if everything up to the last dot is listed in sys.modules. If it is,
+        # it's a module, so check to see if it has a an attribute matching the last portion of the
+        # value. If it does, and it's callable, call it and use the return value for the template
+        # variable, otherwise use the original string.
+        parts = v.split('.')
+        module = sys.modules['.'.join(parts[:-1])]
+        meth = getattr(module, parts[-1:][0], None)
+        setattr(values, k, meth() if meth and callable(meth) else v)
+
     remote_data = ""
     if exists(remote_path):
         with hide("stdout"):
             remote_data = sudo("cat %s" % remote_path)
+
     with open(local_path, "r") as f:
         local_data = f.read()
         # Escape all non-string-formatting-placeholder occurrences of '%':
         local_data = re.sub(r"%(?!\(\w+\)s)", "%%", local_data)
-        local_data %= env
+        local_data %= values
     clean = lambda s: s.replace("\n", "").replace("\r", "").strip()
+
+    # no changes, so no need to rewrite the file
     if clean(remote_data) == clean(local_data):
         return
+
+    # upload the updated file and set its owner/perms, if necessary
     print "Uploading %s => %s" % (local_path, remote_path)
-    upload_template(local_path, remote_path, env, use_sudo=not env.user == "root", backup=False)
+    upload_template(local_path, remote_path, values, use_sudo=not env.user == "root", backup=False)
     if owner:
         sudo("chown %s %s" % (owner, remote_path))
     if mode:
         sudo("chmod %s %s" % (mode, remote_path))
+
+    # if there's a reload command, execute it now
     if reload_command:
         sudo(reload_command)
 
@@ -139,6 +178,14 @@ def get_ipv4(iface):
     """
     cmd = "/sbin/ifconfig %s | grep 'inet addr:' | cut -d: -f 2 |cut -d' ' -f1" % iface
     return sudo(cmd)
+
+
+def get_hostname():
+    """
+    Return the host's name
+    """
+    cmd = "hostname"
+    return run(cmd)
 
 
 def get_public_ip(iface='eth0'):
